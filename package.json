@@ -24,7 +24,7 @@
 		"url": "https://github.com/hasibulrag/n8n-nodes-bkash/issues"
 	},
 	"engines": {
-		"node": ">=20.15"
+		"node": ">=22"
 	},
 	"scripts": {
 		"build": "n8n-node build",

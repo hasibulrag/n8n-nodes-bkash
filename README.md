@@ -119,7 +119,7 @@ Releases are published to npm with provenance by GitHub Actions (`.github/workfl
 ## Compatibility
 
 - Built and tested with n8n node API version 1 and `@n8n/node-cli` 0.57.
-- Requires Node.js 20.15 or later.
+- Requires Node.js 22 or later (same as current n8n releases). The dev toolchain does not install on Node 20, which has reached end of life.
 - Has no runtime dependencies. All HTTP goes through n8n's built-in request helpers.
 
 ## Resources
