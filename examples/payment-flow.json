@@ -1,0 +1,146 @@
+{
+	"name": "bKash Payment Flow (example)",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "8c1f6a52-2d4b-4b8e-9d0e-1a7f00000001",
+			"name": "Start Checkout",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "payment",
+				"operation": "create",
+				"mode": "0011",
+				"amount": 100,
+				"currency": "BDT",
+				"intent": "sale",
+				"merchantInvoiceNumber": "={{ 'INV-' + $now.toMillis() }}",
+				"callbackURL": "https://YOUR-N8N-HOST/webhook/bkash-callback",
+				"payerReference": "01XXXXXXXXX",
+				"additionalFields": {}
+			},
+			"id": "8c1f6a52-2d4b-4b8e-9d0e-1a7f00000002",
+			"name": "bKash Create Payment",
+			"type": "n8n-nodes-bkash.bkash",
+			"typeVersion": 1,
+			"position": [240, 0],
+			"credentials": {
+				"bkashApi": {
+					"id": "",
+					"name": "bKash API (sandbox)"
+				}
+			},
+			"notes": "Send the customer to {{ $json.bkashURL }}. bKash redirects back to the callback webhook below."
+		},
+		{
+			"parameters": {
+				"httpMethod": "GET",
+				"path": "bkash-callback",
+				"responseMode": "responseNode",
+				"options": {}
+			},
+			"id": "8c1f6a52-2d4b-4b8e-9d0e-1a7f00000003",
+			"name": "bKash Callback",
+			"type": "n8n-nodes-base.webhook",
+			"typeVersion": 2,
+			"position": [0, 300],
+			"webhookId": "6a1b8f2e-5c3d-4e7f-9a0b-bkashcallback1"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict"
+					},
+					"conditions": [
+						{
+							"id": "status-is-success",
+							"leftValue": "={{ $json.query.status }}",
+							"rightValue": "success",
+							"operator": {
+								"type": "string",
+								"operation": "equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"id": "8c1f6a52-2d4b-4b8e-9d0e-1a7f00000004",
+			"name": "Status Is Success?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [240, 300]
+		},
+		{
+			"parameters": {
+				"resource": "payment",
+				"operation": "execute",
+				"paymentID": "={{ $json.query.paymentID }}"
+			},
+			"id": "8c1f6a52-2d4b-4b8e-9d0e-1a7f00000005",
+			"name": "bKash Execute Payment",
+			"type": "n8n-nodes-bkash.bkash",
+			"typeVersion": 1,
+			"position": [480, 200],
+			"credentials": {
+				"bkashApi": {
+					"id": "",
+					"name": "bKash API (sandbox)"
+				}
+			},
+			"notes": "If this fails or times out, use Payment → Query before retrying."
+		},
+		{
+			"parameters": {
+				"respondWith": "text",
+				"responseBody": "=Payment {{ $json.transactionStatus }}. Transaction ID: {{ $json.trxID }}",
+				"options": {}
+			},
+			"id": "8c1f6a52-2d4b-4b8e-9d0e-1a7f00000006",
+			"name": "Respond Success",
+			"type": "n8n-nodes-base.respondToWebhook",
+			"typeVersion": 1.1,
+			"position": [720, 200]
+		},
+		{
+			"parameters": {
+				"respondWith": "text",
+				"responseBody": "=Payment was not completed (status: {{ $json.query.status }}).",
+				"options": {}
+			},
+			"id": "8c1f6a52-2d4b-4b8e-9d0e-1a7f00000007",
+			"name": "Respond Failed",
+			"type": "n8n-nodes-base.respondToWebhook",
+			"typeVersion": 1.1,
+			"position": [480, 400]
+		}
+	],
+	"connections": {
+		"Start Checkout": {
+			"main": [[{ "node": "bKash Create Payment", "type": "main", "index": 0 }]]
+		},
+		"bKash Callback": {
+			"main": [[{ "node": "Status Is Success?", "type": "main", "index": 0 }]]
+		},
+		"Status Is Success?": {
+			"main": [
+				[{ "node": "bKash Execute Payment", "type": "main", "index": 0 }],
+				[{ "node": "Respond Failed", "type": "main", "index": 0 }]
+			]
+		},
+		"bKash Execute Payment": {
+			"main": [[{ "node": "Respond Success", "type": "main", "index": 0 }]]
+		}
+	},
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"pinData": {}
+}

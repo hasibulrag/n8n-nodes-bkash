@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+	<!-- Generic mobile-wallet glyph (dark theme). Not the bKash logo. -->
+	<rect x="6" y="14" width="52" height="40" rx="8" fill="#F0538F"/>
+	<path d="M14 14 L42 6 a4 4 0 0 1 5 3 L48 14 Z" fill="#C93A72"/>
+	<rect x="38" y="27" width="20" height="14" rx="5" fill="#1F1F1F"/>
+	<circle cx="46" cy="34" r="3.5" fill="#F0538F"/>
+	<path d="M14 26 h14 M14 34 h10 M14 42 h14" stroke="#1F1F1F" stroke-width="3" stroke-linecap="round"/>
+</svg>
